@@ -178,7 +178,7 @@ export default function Contact() {
 
             {status === "success" && (
               <p className="text-xs text-accent-cyan">
-                Thanks! Your message has been sent successfully. I'll get back
+                Thanks! Your message has been sent successfully. I&apos;ll get back
                 to you as soon as possible.
               </p>
             )}
