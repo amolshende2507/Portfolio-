@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-base text-ink-primary font-body antialiased;
+    background-image:
+      radial-gradient(900px circle at 15% -10%, rgba(76, 141, 255, 0.10), transparent 45%),
+      radial-gradient(700px circle at 90% 10%, rgba(139, 107, 255, 0.10), transparent 45%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(76, 141, 255, 0.3);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #06060a;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1c1d29;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2a2c3d;
+  }
+
+  :focus-visible {
+    outline: 2px solid #4c8dff;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-glass backdrop-blur-xl border border-line;
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl shadow-card;
+  }
+
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.2em] text-accent-blue/80;
+  }
+
+  .section-heading {
+    @apply font-display text-3xl sm:text-4xl font-medium tracking-tight text-ink-primary;
+  }
+
+  .gradient-text {
+    @apply bg-accent-gradient bg-clip-text text-transparent;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-full bg-accent-gradient px-6 py-3 text-sm font-medium text-white shadow-glow transition-transform duration-300 hover:scale-[1.03] active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.02] px-6 py-3 text-sm font-medium text-ink-primary transition-colors duration-300 hover:bg-white/[0.06];
+  }
+
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-6 sm:px-8;
+  }
+}
