@@ -72,7 +72,7 @@ export default function Contact() {
       <div className="container-page">
         <SectionHeading
           eyebrow="Contact"
-          title="Let's build something together"
+          title="Let&apos;s build something together"
           description="Open to internships, placements, freelance work, and interesting collaborations."
         />
 
