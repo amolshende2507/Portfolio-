@@ -19,8 +19,6 @@ const socials = [
   { label: "Email", href: `mailto:${profile.email}`, icon: Mail },
 ];
 
-// Add this to your .env.local:
-// NEXT_PUBLIC_WEB3FORMS_KEY=your_access_key
 const WEB3FORMS_KEY = process.env.NEXT_PUBLIC_WEB3FORMS_KEY ?? "";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -32,6 +30,7 @@ export default function Contact() {
     e.preventDefault();
 
     if (!WEB3FORMS_KEY) {
+      console.error("Missing NEXT_PUBLIC_WEB3FORMS_KEY");
       setStatus("error");
       return;
     }
@@ -48,20 +47,22 @@ export default function Contact() {
     );
 
     try {
-      const res = await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         body: formData,
       });
 
-      const result = await res.json();
+      const result = await response.json();
 
       if (result.success) {
         setStatus("success");
         form.reset();
       } else {
+        console.error(result);
         setStatus("error");
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       setStatus("error");
     }
   }
@@ -82,8 +83,15 @@ export default function Contact() {
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.5 }}
             onSubmit={handleSubmit}
+            noValidate
             className="glass-card space-y-5 p-7"
           >
+            <input
+              type="hidden"
+              name="subject"
+              value="Portfolio Contact Form"
+            />
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <label
@@ -92,9 +100,11 @@ export default function Contact() {
                 >
                   Name
                 </label>
+
                 <input
                   id="name"
                   name="name"
+                  type="text"
                   required
                   placeholder="Your name"
                   className="w-full rounded-lg border border-line bg-white/[0.02] px-4 py-2.5 text-sm text-ink-primary placeholder:text-ink-muted focus:border-accent-blue/50 focus:outline-none"
@@ -108,6 +118,7 @@ export default function Contact() {
                 >
                   Email
                 </label>
+
                 <input
                   id="email"
                   name="email"
@@ -126,6 +137,7 @@ export default function Contact() {
               >
                 Message
               </label>
+
               <textarea
                 id="message"
                 name="message"
@@ -139,9 +151,14 @@ export default function Contact() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="btn-primary w-full justify-center disabled:opacity-60 sm:w-auto"
+              className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
-              {status === "success" ? (
+              {status === "loading" ? (
+                <>
+                  <Send size={16} />
+                  Sending...
+                </>
+              ) : status === "success" ? (
                 <>
                   <CheckCircle2 size={16} />
                   Message sent
@@ -149,35 +166,33 @@ export default function Contact() {
               ) : status === "error" ? (
                 <>
                   <AlertCircle size={16} />
-                  Couldn't send — try again
+                  Try again
                 </>
               ) : (
                 <>
                   <Send size={16} />
-                  {status === "loading"
-                    ? "Sending..."
-                    : "Send message"}
+                  Send message
                 </>
               )}
             </button>
 
             {status === "success" && (
               <p className="text-xs text-accent-cyan">
-                Thanks — I'll get back to you soon. You can also reach me
-                directly at {profile.email}.
+                Thanks! Your message has been sent successfully. I'll get back
+                to you as soon as possible.
               </p>
             )}
 
             {status === "error" && (
-              <p className="text-xs text-ink-secondary">
-                Something went wrong. Email me directly at{" "}
+              <p className="text-xs text-red-400">
+                Failed to send your message. You can also email me directly at{" "}
                 <a
                   href={`mailto:${profile.email}`}
-                  className="text-accent-blue"
+                  className="text-accent-blue underline"
                 >
                   {profile.email}
-                </a>{" "}
-                instead.
+                </a>
+                .
               </p>
             )}
           </motion.form>
@@ -194,8 +209,8 @@ export default function Contact() {
             </p>
 
             <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
-              I usually reply within a day or two. Reach out directly if a
-              form isn't your thing.
+              I usually reply within one or two days. Feel free to connect with
+              me on any of the platforms below.
             </p>
 
             <div className="mt-6 space-y-3">
@@ -204,7 +219,7 @@ export default function Contact() {
                   key={social.label}
                   href={social.href}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg border border-line bg-white/[0.02] px-4 py-3 text-sm text-ink-secondary transition-colors hover:border-accent-blue/40 hover:text-ink-primary"
                 >
                   <social.icon size={16} />
