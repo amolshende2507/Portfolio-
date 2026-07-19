@@ -2,7 +2,14 @@
 
 import { useState, FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Github, Linkedin, Mail, Send } from "lucide-react";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import SectionHeading from "./ui/SectionHeading";
 import { profile } from "@/lib/data";
 
@@ -12,16 +19,51 @@ const socials = [
   { label: "Email", href: `mailto:${profile.email}`, icon: Mail },
 ];
 
-export default function Contact() {
-  const [status, setStatus] = useState<"idle" | "sent">("idle");
+// Add this to your .env.local:
+// NEXT_PUBLIC_WEB3FORMS_KEY=your_access_key
+const WEB3FORMS_KEY = process.env.NEXT_PUBLIC_WEB3FORMS_KEY ?? "";
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+type Status = "idle" | "loading" | "success" | "error";
+
+export default function Contact() {
+  const [status, setStatus] = useState<Status>("idle");
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
-    const subject = encodeURIComponent(`Portfolio inquiry from ${form.get("name")}`);
-    const body = encodeURIComponent(String(form.get("message") ?? ""));
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
-    setStatus("sent");
+
+    if (!WEB3FORMS_KEY) {
+      setStatus("error");
+      return;
+    }
+
+    setStatus("loading");
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    formData.append("access_key", WEB3FORMS_KEY);
+    formData.append(
+      "subject",
+      `Portfolio inquiry from ${formData.get("name")}`
+    );
+
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (result.success) {
+        setStatus("success");
+        form.reset();
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
   }
 
   return (
@@ -44,7 +86,10 @@ export default function Contact() {
           >
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label htmlFor="name" className="mb-2 block text-xs text-ink-secondary">
+                <label
+                  htmlFor="name"
+                  className="mb-2 block text-xs text-ink-secondary"
+                >
                   Name
                 </label>
                 <input
@@ -55,8 +100,12 @@ export default function Contact() {
                   className="w-full rounded-lg border border-line bg-white/[0.02] px-4 py-2.5 text-sm text-ink-primary placeholder:text-ink-muted focus:border-accent-blue/50 focus:outline-none"
                 />
               </div>
+
               <div>
-                <label htmlFor="email" className="mb-2 block text-xs text-ink-secondary">
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-xs text-ink-secondary"
+                >
                   Email
                 </label>
                 <input
@@ -69,8 +118,12 @@ export default function Contact() {
                 />
               </div>
             </div>
+
             <div>
-              <label htmlFor="message" className="mb-2 block text-xs text-ink-secondary">
+              <label
+                htmlFor="message"
+                className="mb-2 block text-xs text-ink-secondary"
+              >
                 Message
               </label>
               <textarea
@@ -82,10 +135,51 @@ export default function Contact() {
                 className="w-full resize-none rounded-lg border border-line bg-white/[0.02] px-4 py-2.5 text-sm text-ink-primary placeholder:text-ink-muted focus:border-accent-blue/50 focus:outline-none"
               />
             </div>
-            <button type="submit" className="btn-primary w-full justify-center sm:w-auto">
-              <Send size={16} />
-              {status === "sent" ? "Opening your mail client…" : "Send message"}
+
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="btn-primary w-full justify-center disabled:opacity-60 sm:w-auto"
+            >
+              {status === "success" ? (
+                <>
+                  <CheckCircle2 size={16} />
+                  Message sent
+                </>
+              ) : status === "error" ? (
+                <>
+                  <AlertCircle size={16} />
+                  Couldn't send — try again
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  {status === "loading"
+                    ? "Sending..."
+                    : "Send message"}
+                </>
+              )}
             </button>
+
+            {status === "success" && (
+              <p className="text-xs text-accent-cyan">
+                Thanks — I'll get back to you soon. You can also reach me
+                directly at {profile.email}.
+              </p>
+            )}
+
+            {status === "error" && (
+              <p className="text-xs text-ink-secondary">
+                Something went wrong. Email me directly at{" "}
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="text-accent-blue"
+                >
+                  {profile.email}
+                </a>{" "}
+                instead.
+              </p>
+            )}
           </motion.form>
 
           <motion.div
@@ -98,10 +192,12 @@ export default function Contact() {
             <p className="font-display text-lg font-medium text-ink-primary">
               Find me elsewhere
             </p>
-            <p className="mt-2 text-sm text-ink-secondary leading-relaxed">
+
+            <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
               I usually reply within a day or two. Reach out directly if a
-              form isn&apos;t your thing.
+              form isn't your thing.
             </p>
+
             <div className="mt-6 space-y-3">
               {socials.map((social) => (
                 <a
